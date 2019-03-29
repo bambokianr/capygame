@@ -1,11 +1,12 @@
 import pygame  #importa a bibilioteca pygame
 import players
 import enemies
+import platforms
 import sprites
 
 pygame.init()  #inicia apropriadamente o pygame
-screenWidth = 1272
-screenHeight = 555
+screenWidth = 1250
+screenHeight = 580
 win = pygame.display.set_mode((screenWidth, screenHeight)) #cria uma janela com determinadas dimensões
 pygame.display.set_caption("First Game") #fornece um titulo para a janela
 
@@ -25,14 +26,17 @@ def redrawGameWindow():
     goblin.draw(win) #atualiza o inimigo na tela
     for bullet in bullets:
         bullet.draw(win) #atualiza os projeteis na tela
+    stage1.draw(win, screenWidth, screenHeight)
     pygame.display.update()  #atualiza a janela
 
 font = pygame.font.SysFont('comicsans', 30, True) #escolha a fonte de texto
-man = players.player(20, screenHeight-64, 64, 64) #inicia o objeto player
-goblin = enemies.enemy(50, screenHeight-64, 64, 64, 200) #inicia o objeto inimigo
+man = players.player(20, screenHeight-64-20, 64, 64) #inicia o objeto player
+goblin = enemies.enemy(50, screenHeight-64-3, 64, 64, 200) #inicia o objeto inimigo
 shootLoop = 0 #coloca um delay entre o disparo de dois projeteis
 bullets = [] #vetor que ira armazenas os projeteis
 run = True
+
+stage1 = platforms.stage_platforms(0, 0, 1)
 
 #Main loop
 while run:

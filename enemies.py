@@ -19,7 +19,7 @@ class enemy(object):
 
         #Verifica se esta vivo
         if self.visible:
-            if self.walkCount + 1 >= 33:
+            if self.walkCount + 1 >= 6:
                 self.walkCount = 0
 
             if self.vel > 0:
@@ -28,8 +28,8 @@ class enemy(object):
             else:
                 win.blit(sprites.walkLeftE[self.walkCount//3], (self.x, self.y))
                 self.walkCount += 1
-            self.hitbox = (self.x + 20, self.y, 28, 60)
-            #pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
+            self.hitbox = (self.x, self.y+2, 135, 40)
+            pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
 
             #Desenha a barra de vida, que eh um retangulo verde que diminui por cima de um retangulo vermelho fixo
             pygame.draw.rect(win, (255, 0, 0), (self.hitbox[0], self.hitbox[1] - 10, self.hitbox[2], 5))
