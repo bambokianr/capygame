@@ -7,10 +7,10 @@ screenHeight = 630
 win = pygame.display.set_mode((screenWidth, screenHeight))
 pygame.display.set_caption("Sprites Capy")
 
-walkRight = [pygame.image.load('resources/img/capy64pxr1.png'), pygame.image.load('resources/img/capy64pxr2.png')]
-walkLeft = [pygame.image.load('resources/img/capy64pxl1.png'), pygame.image.load('resources/img/capy64pxl2.png')]
+#walkRight = [pygame.image.load('resources/img/capy64pxr1.png'), pygame.image.load('resources/img/capy64pxr2.png')]
+#walkLeft = [pygame.image.load('resources/img/capy64pxl1.png'), pygame.image.load('resources/img/capy64pxl2.png')]
 
-bg = pygame.image.load('resources/img/background.png')
+#bg = pygame.image.load('resources/img/background.png')
 
 clock = pygame.time.Clock()
 menu = True
