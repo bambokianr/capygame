@@ -14,7 +14,7 @@ class player(object):
         self.right = False
         self.walkCount = 0 #variavel para auxiliar na dinamica do movimento lateral
         self.standing = True #verifica se o player nao esta andando nem pulando
-        self.hitbox = (self.x + 20, self.y + 15, 28, 45) #abstracao do player para um retangulo
+        self.hitbox = (self.x + 3, self.y + 3, 72, 58) #abstracao do player para um retangulo
         self.score = 0 #pontuacao do player
     def draw(self, win):
         if (self.walkCount + 1) >= 6:
@@ -36,14 +36,14 @@ class player(object):
                 win.blit(sprites.walkRightP[0], (self.x, self.y))
             else:
                 win.blit(sprites.walkRightP[0], (self.x, self.y))
-        self.hitbox = (self.x + 20, self.y + 15, 28, 45)
-        #pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
+        self.hitbox = (self.x + 3, self.y + 3, 72, 58)
+        pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
     def hit(self, win, screenWidth, screenHeight):
         #Onde o player vai renascer
         self.isJump = False
         self.jumpCount = 10
         self.x = 400
-        self.y = screenHeight-64
+        self.y = screenHeight-64-20
         #Mostra na tela que perdeu score
         font1 = pygame.font.SysFont('comicsans', 100)
         text = font1.render('-5', 1, (255, 0, 0))
