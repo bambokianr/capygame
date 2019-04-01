@@ -10,7 +10,7 @@ class enemy(object):
         self.end = end
         self.path = [self.x, self.end] #caminho pre-determinado para o inimigo percorrer
         self.walkCount = 0 #variavel para auxiliar na dinamica do movimento lateral
-        self.vel = 3
+        self.vel = 4
         self.hitbox = (self.x + 20, self.y, 28, 60) #abstracao do inimigo para um retangulo
         self.health = 10 - 1 #vida do inimigo
         self.visible = True #indica se o inimigo esta vivo ou nao
