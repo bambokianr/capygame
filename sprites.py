@@ -14,6 +14,17 @@ walkRightE = [pygame.image.load('sprites/alligator1right.png'), pygame.image.loa
 walkLeftE = [pygame.transform.scale(walkLeftE[0], (138, 64)), pygame.transform.scale(walkLeftE[1], (138, 64))]
 walkRightE = [pygame.transform.scale(walkRightE[0], (138, 64)), pygame.transform.scale(walkRightE[1], (138, 64))]
 
+#Importa o sprite da plataforma
+spritePlat = [pygame.image.load('sprites/box1.png'), pygame.image.load('sprites/box2.png'), pygame.image.load('sprites/box3.png'), pygame.image.load('sprites/box4.png')]
+#Redimensiona os sprites do inimigo
+spritePlat = [pygame.transform.scale(spritePlat[0], (32, 30)), pygame.transform.scale(spritePlat[1], (64, 30)), pygame.transform.scale(spritePlat[2], (96, 30)), pygame.transform.scale(spritePlat[3], (128, 30))]
+
+#Importa os sprites do player
+chickLeft = [pygame.image.load('sprites/chickenL1.png'), pygame.image.load('sprites/chickenL2.png')]
+chickRight = [pygame.image.load('sprites/chickenR1.png'), pygame.image.load('sprites/chickenR2.png')]
+#Redimensiona os sprites do player
+chickLeft = [pygame.transform.scale(chickLeft[0], (50, 50))]
+chickRight = [pygame.transform.scale(chickRight[0], (50, 50))]
 
 #Importa os sprites do inimigo
 #walkLeftE = [pygame.image.load('sprites/L1E.png'), pygame.image.load('sprites/L2E.png'), pygame.image.load('sprites/L3E.png'),
