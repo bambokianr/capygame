@@ -1,4 +1,5 @@
 import pygame, sys, random
+from os import path
 pygame.init()
 
 X = 1150
@@ -8,9 +9,10 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
-GREEN = (0, 155, 0)
+GREEN = (220, 215, 0)
 GREY = (220, 220, 220)
 
+HS_FILE = "highscore.txt"
 menu = False
 state_pag = "init_menu"
 
@@ -23,6 +25,7 @@ bg = pygame.image.load('sprites/background.png')
 init_menu = pygame.transform.scale(pygame.image.load("menu_iniciar.png"), (X, Y))
 scores_menu = pygame.transform.scale(pygame.image.load("menu_scores.png"), (X, Y))
 final_score = pygame.transform.scale(pygame.image.load("final_score.png"), (X, Y))
+box_plat = pygame.transform.scale(pygame.image.load("sprites/box.png"), (30, 30))
 coinSound = pygame.mixer.Sound('sounds/coin.wav') #efeito sonoro do projetil
 hitSound = pygame.mixer.Sound('sounds/hit.wav') #efeito sonoro do projetil batendo
 # music = pygame.mixer.music.load('sounds/music.mp3') #musica de fundo
@@ -34,19 +37,21 @@ for i in range(0, pygame.joystick.get_count()):
     joysticks[-1].init()
     print("Detected joystick '", joysticks[-1].get_name(), "'")
 
-
 class Platform():
     rects = []
-    def __init__(self, sizex, sizey, posx, posy, color):
+    def __init__(self, sizex, sizey, posx, posy, color, qtd):
+        self.qtd = qtd
+        self.posx = posx
+        self.posy = posy
         self.surf = pygame.surface.Surface((sizex, sizey))
         self.rect = self.surf.get_rect(midbottom=(posx, posy))
         self.surf.fill(color)
         Platform.rects.append(self.rect)
 
     def draw(self):
-        # box_plat = pygame.transform.scale(pygame.image.load("sprites/box.png"), (30, 30))
-        # screen.blit(box_plat, (0, 0))
         screen.blit(self.surf, self.rect)
+        for i in range(self.qtd):
+            screen.blit(box_plat, [self.posx - 15*self.qtd + 30*i, self.posy - 30])       
 
     def event(self):
         pass
@@ -59,11 +64,11 @@ class Player():
         self.right = False
         self.walkCount = 0
         self.direction = 1
-        self.capLeft = [pygame.transform.scale(pygame.image.load('sprites/capivara1left.png').convert_alpha(), (74, 48)),
-                        pygame.transform.scale(pygame.image.load('sprites/capivara2left.png').convert_alpha(), (74, 48))]
-        self.capRight = [pygame.transform.scale(pygame.image.load('sprites/capivara1right.png').convert_alpha(), (74, 48)),
-                         pygame.transform.scale(pygame.image.load('sprites/capivara2right.png').convert_alpha(), (74, 48))]
-        self.surf = pygame.transform.scale(pygame.image.load('sprites/capivara1left.png').convert_alpha(), (74, 48))
+        self.capLeft = [pygame.transform.scale(pygame.image.load('sprites/capivara1left.png').convert_alpha(), (74, 62)),
+                        pygame.transform.scale(pygame.image.load('sprites/capivara2left.png').convert_alpha(), (74, 62))]
+        self.capRight = [pygame.transform.scale(pygame.image.load('sprites/capivara1right.png').convert_alpha(), (74, 62)),
+                         pygame.transform.scale(pygame.image.load('sprites/capivara2right.png').convert_alpha(), (74, 62))]
+        self.surf = pygame.transform.scale(pygame.image.load('sprites/capivara1left.png').convert_alpha(), (74, 62))
         self.rect = self.surf.get_rect(midbottom=(X//2, Y - 100))
         self.rect.height -= 3
         self.y_speed = 0
@@ -74,9 +79,9 @@ class Player():
             self.jump = False
 
         if self.left and self.rect.left > 0:
-            self.rect.centerx -= 5
+            self.rect.centerx -= 15
         if self.right and self.rect.right < X:
-            self.rect.centerx += 5
+            self.rect.centerx += 15
 
         self.rect.bottom += self.y_speed
 
@@ -161,6 +166,7 @@ class Enemy():
         if (game.player.rect.colliderect(self.rect) and
             game.player.rect.midbottom != (X//2, Y - 99)):
             game.lives -= 1
+            game.score -= 15
             game.player.rect.midbottom = (X//2, Y - 99)
             hitSound.play()
 
@@ -183,7 +189,8 @@ class Enemy():
 
 class Coin():
     def __init__(self):
-        self.positions = [(600, 245), (250, 325), (40, 500), (850, 500), (830, 245), (800, 325)]
+        # self.positions = [(580, Y - 100), (250, Y - 100), (420, Y - 100), (830, Y - 100), (800, Y - 100)]
+        self.positions = [(580, 230), (250, 310), (420, 150), (830, 230), (800, 310)]
         self.surf = pygame.transform.scale(pygame.image.load('sprites/orange.png').convert_alpha(), (25, 25))
 
         self.rect = self.surf.get_rect(midbottom=random.choice(self.positions))
@@ -193,6 +200,7 @@ class Coin():
         if game.player.rect.colliderect(self.rect):
             self.rect.midbottom = random.choice(self.positions)
             game.coin_count += 1
+            game.score += 5
             coinSound.play()
         elif game.enemy.rect.colliderect(self.rect):
             self.rect.midbottom = random.choice(self.positions)
@@ -205,12 +213,22 @@ class Game():
     def __init__(self):
         self.levels = [self.level_1, self.level_2, self.level_3]
         self.heart_surf = pygame.transform.scale(pygame.image.load('sprites/heart.png').convert_alpha(), (23, 20))
-        self.coin_surf = pygame.transform.scale(pygame.image.load('sprites/key.png').convert_alpha(), (20, 20))
-        self.acc = 2
+        self.coin_surf = pygame.transform.scale(pygame.image.load('sprites/key.png').convert_alpha(), (40, 25))
+        self.acc = 3
         self.timer = False
         self.level = 0
         self.state = self.startpage
+        self.load_data()
 
+    def load_data(self):
+        #load highscore
+        self.dir = path.dirname(__file__)
+        with open(path.join(self.dir, HS_FILE), 'w') as f:
+            try:
+                self.highscore = int(f.read())
+            except:
+                self.highscore = 0
+            
     def init(self):
         """
     A game state function.
@@ -218,6 +236,7 @@ class Game():
 """
         self.lives = 5
         self.coin_count = 0
+        self.score = 0
         self.sprites = [self]
         self.levels[self.level]()
         self.state = self.loop
@@ -230,14 +249,17 @@ class Game():
         self.coin = Coin()
         self.sprites.append(self.coin)
 
-        self.sprites.append(Platform(X, 100, X//2, Y, GREEN))
-        self.sprites.append(Platform(200, 15, 500, Y-180, BLUE))
-        self.sprites.append(Platform(300, 15, 200, 340, BLUE))
-        self.sprites.append(Platform(250, 15, 480, 260, BLUE))
-        self.sprites.append(Platform(300, 15, 150, 180, BLUE))
-        self.sprites.append(Platform(300, 15, 500, 100, BLUE))
-        self.sprites.append(Platform(80, 15, 830, 260, BLUE))
-        self.sprites.append(Platform(80, 15, 800, 340, BLUE))
+        self.sprites.append(Platform(X, 100, X//2, Y, GREEN, 0))
+
+        # para adicionar - prim. atributo = 30*ultimo atributo
+        self.sprites.append(Platform(210, 30, 500, Y-180, RED, 7))
+        self.sprites.append(Platform(300, 30, 200, 340, RED, 10))
+        self.sprites.append(Platform(240, 30, 480, 260, RED, 8))
+        self.sprites.append(Platform(300, 30, 300, 180, RED, 10))
+        self.sprites.append(Platform(300, 30, 500, 100, RED, 10))
+        self.sprites.append(Platform(90, 30, 830, 260, RED, 3))
+        self.sprites.append(Platform(90, 30, 800, 340, RED, 3))
+        
 
     def level_2(self):
         print("LEVEL 2")
@@ -277,6 +299,13 @@ class Game():
                 self.player.right = True
 
     def draw(self):
+        score_cont = pygame.transform.scale(pygame.image.load("sprites/cont_score.png"), (110, 30))
+        screen.blit(score_cont, (X - 200, 20))
+        font = pygame.font.SysFont("Segoe Print", 40)
+        txt_surf = font.render(str(game.score), 1, BLACK)
+        txt_rect = txt_surf.get_rect(center=(X - 70, 35))
+        screen.blit(txt_surf, txt_rect)
+
         for i in range(self.lives):
             screen.blit(self.heart_surf, [i*25 + 20, 20])
         for i in range(self.coin_count):
@@ -372,13 +401,32 @@ class Game():
     def endpage(self):
         " a game state function "
         screen.blit(final_score, (0, 0))
-        font = pygame.font.SysFont("Segoe Print", 140)
-        txt_surf = font.render("330", 1, WHITE)
-        txt_rect = txt_surf.get_rect(center=(X//2, Y//3 + 20))
-        screen.blit(txt_surf, txt_rect)
+        
+
+        if game.score > self.highscore:
+            self.highscore = game.score
+            font = pygame.font.SysFont("Segoe Print", 140)
+            txt_surf = font.render(str(game.score), 1, WHITE)
+            txt_rect = txt_surf.get_rect(center=(X//2, Y//3 + 10))
+            screen.blit(txt_surf, txt_rect)
+            screen.blit(pygame.image.load("sprites/new_hscore.png"), ((X - 290)//2, Y//8*5 - 60))
+            with open(path.join(self.dir, HS_FILE), 'w') as f:
+                f.write(str(game.score))
+            
+        else:
+            screen.blit(pygame.image.load("sprites/highscore.png"), ((X - 500)//2, Y//8*5 - 100))
+            font1 = pygame.font.SysFont("Segoe Print", 140)
+            txt_surf1 = font1.render(str(game.score), 1, WHITE)
+            txt_rect1 = txt_surf1.get_rect(center=(X//2, Y//3 + 10))
+            screen.blit(txt_surf1, txt_rect1)
+
+            font2 = pygame.font.SysFont("Segoe Print", 100)
+            txt_surf2 = font2.render(str(self.highscore), 1, WHITE)
+            txt_rect2 = txt_surf2.get_rect(center=(X//2, Y//3 + 180))
+            screen.blit(txt_surf2, txt_rect2)
 
         # stop = button("Exit", BLACK, ((X-100)//2, Y//8*5))
-        stop = screen.blit(pygame.image.load("sprites/btn_exit.png"), ((X-205)//2, Y//8*5))
+        stop = screen.blit(pygame.image.load("sprites/btn_exit.png"), (50, Y//8*5 + 100))
         
         self.buttons = [(stop, self.end)]
         pygame.display.flip()
