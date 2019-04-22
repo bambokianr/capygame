@@ -15,7 +15,18 @@ screen = pygame.display.set_mode((X, Y))
 pygame.display.set_caption("CapyGame")
 clock = pygame.time.Clock()
 pygame.time.set_timer(pygame.USEREVENT + 1, 10000)
-bg = pygame.image.load('background.png')
+
+bg = pygame.image.load('sprites/background.png')
+coinSound = pygame.mixer.Sound('sounds/coin.wav') #efeito sonoro do projetil
+hitSound = pygame.mixer.Sound('sounds/hit.wav') #efeito sonoro do projetil batendo
+music = pygame.mixer.music.load('sounds/music.mp3') #musica de fundo
+pygame.mixer.music.play(-1) #roda a musica de fundo
+
+joysticks = []
+for i in range(0, pygame.joystick.get_count()):
+    joysticks.append(pygame.joystick.Joystick(i))
+    joysticks[-1].init()
+    print("Detected joystick '", joysticks[-1].get_name(), "'")
 
 
 class Platform():
@@ -38,8 +49,15 @@ class Player():
         self.jump = False
         self.left = False
         self.right = False
-        self.surf = pygame.transform.scale(pygame.image.load('capivara1left.png').convert_alpha(), (74, 48))
-        self.rect = self.surf.get_rect(midbottom=(X//2, Y - 48))
+        self.walkCount = 0
+        self.direction = 1
+        self.capLeft = [pygame.transform.scale(pygame.image.load('sprites/capivara1left.png').convert_alpha(), (74, 48)),
+                        pygame.transform.scale(pygame.image.load('sprites/capivara2left.png').convert_alpha(), (74, 48))]
+        self.capRight = [pygame.transform.scale(pygame.image.load('sprites/capivara1right.png').convert_alpha(), (74, 48)),
+                         pygame.transform.scale(pygame.image.load('sprites/capivara2right.png').convert_alpha(), (74, 48))]
+        self.surf = pygame.transform.scale(pygame.image.load('sprites/capivara1left.png').convert_alpha(), (74, 48))
+        self.rect = self.surf.get_rect(midbottom=(X//2, Y - 100))
+        self.rect.height -= 3
         self.y_speed = 0
 
     def event(self):
@@ -72,13 +90,36 @@ class Player():
             return False
 
     def draw(self):
-        screen.blit(self.surf, self.rect)
+        if (self.walkCount+1) >= 6:
+            self.walkCount = 0
+
+        if (self.left):
+            screen.blit(self.capLeft[self.walkCount//3], self.rect)
+            self.walkCount += 1
+            self.direction = -1
+        elif (self.right):
+            screen.blit(self.capRight[self.walkCount//3], self.rect)
+            self.walkCount += 1
+            self.direction = 1
+        else:
+            if (self.direction == 1):
+                screen.blit(self.capRight[0], self.rect)
+            elif (self.direction == -1):
+                screen.blit(self.capLeft[0], self.rect)
+        #screen.blit(self.surf, self.rect)
 
 
 class Enemy():
     def __init__(self):
-        self.surf = pygame.transform.scale(pygame.image.load('alligator1right.png').convert_alpha(), (86, 40))
+        self.walkCount = 0
+        self.alligLeft = [pygame.transform.scale(pygame.image.load('sprites/alligator1left.png').convert_alpha(), (86, 40)),
+                        pygame.transform.scale(pygame.image.load('sprites/alligator2left.png').convert_alpha(), (86, 40))]
+        self.alligRight = [pygame.transform.scale(pygame.image.load('sprites/alligator1right.png').convert_alpha(), (86, 40)),
+                         pygame.transform.scale(pygame.image.load('sprites/alligator2right.png').convert_alpha(), (86, 40))]
+
+        self.surf = pygame.transform.scale(pygame.image.load('sprites/alligator1right.png').convert_alpha(), (86, 40))
         self.rect = self.surf.get_rect(midtop=(X//2, 0))
+        self.rect.height -= 13
         self.x_speed = random.randint(3, 7)
         self.y_speed = 0
 
@@ -113,9 +154,23 @@ class Enemy():
             game.player.rect.midbottom != (X//2, Y - 99)):
             game.lives -= 1
             game.player.rect.midbottom = (X//2, Y - 99)
+            hitSound.play()
 
     def draw(self):
-        screen.blit(self.surf, self.rect)
+        self.walkCount += 1
+        if (self.walkCount+1) >= 6:
+            self.walkCount = 0
+
+        if (self.x_speed < 0):
+            screen.blit(self.alligLeft[self.walkCount//3], self.rect)
+            #self.walkCount += 1
+            self.direction = -1
+        elif (self.x_speed > 0):
+            screen.blit(self.alligRight[self.walkCount//3], self.rect)
+            #self.walkCount += 1
+            self.direction = 1
+
+        #screen.blit(self.surf, self.rect)
 
 
 class Coin():
@@ -130,6 +185,7 @@ class Coin():
         if game.player.rect.colliderect(self.rect):
             self.rect.midbottom = random.choice(self.positions)
             game.coin_count += 1
+            coinSound.play()
         elif game.enemy.rect.colliderect(self.rect):
             self.rect.midbottom = random.choice(self.positions)
 
@@ -185,10 +241,15 @@ class Game():
 
     def event(self):
         " a game state function "
+
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            elif event.type == pygame.JOYBUTTONDOWN:
+                if event.button == 0 and self.player.on_ground():
+                    self.player.jump = True
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and self.player.on_ground():
                     self.player.jump = True
@@ -202,6 +263,12 @@ class Game():
             self.player.left = True
         if keys[pygame.K_RIGHT]:
             self.player.right = True
+
+        for i in range(0, pygame.joystick.get_count()):
+            if pygame.joystick.Joystick(i).get_axis(0) < -0.8:
+                self.player.left = True
+            if pygame.joystick.Joystick(i).get_axis(0) > 0.8:
+                self.player.right = True
 
     def draw(self):
         for i in range(self.lives):
