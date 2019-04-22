@@ -213,7 +213,7 @@ class Game():
     def __init__(self):
         self.levels = [self.level_1, self.level_2, self.level_3]
         self.heart_surf = pygame.transform.scale(pygame.image.load('sprites/heart.png').convert_alpha(), (23, 20))
-        self.coin_surf = pygame.transform.scale(pygame.image.load('sprites/key.png').convert_alpha(), (40, 25))
+        self.coin_surf = pygame.transform.scale(pygame.image.load('sprites/pineapple.png').convert_alpha(), (25, 40))
         self.acc = 3
         self.timer = False
         self.level = 0
@@ -234,7 +234,7 @@ class Game():
     A game state function.
     Called at the start of a new level.
 """
-        self.lives = 5
+        self.lives = 2
         self.coin_count = 0
         self.score = 0
         self.sprites = [self]
@@ -330,14 +330,51 @@ class Game():
 
     def play_again(self):
         " a game state function "
+        self.btn_option = True
+        self.btn_state = "play_selected"        
 
-        # opção de selecionar no teclado e não só no mouse
-        play = screen.blit(pygame.image.load("sprites/btn_playmore.png"), ((X-500)//3, Y//8*5))
-        stop = screen.blit(pygame.image.load("sprites/btn_stopplay.png"), ((X-300)//3*2+100, Y//8*5))
+        # play = screen.blit(pygame.image.load("sprites/btn_playmore.png"), ((X-500)//3, Y//8*5))
+        # stop = screen.blit(pygame.image.load("sprites/btn_stopplay.png"), ((X-300)//3*2+100, Y//8*5))
+        # play_selected = screen.blit(pygame.image.load("sprites/btn_playmore_s.png"), ((X-500)//3, Y//8*5))
+        # stop_selected = screen.blit(pygame.image.load("sprites/btn_stopplay_s.png"), ((X-300)//3*2+100, Y//8*5))
         
-        pygame.display.flip()
-        self.buttons = [(play, self.init), (stop, self.endpage)]
-        self.state = self.mouse_click
+        # pygame.display.flip()
+        # self.buttons = [(play, self.init), (stop, self.endpage)]
+        # self.state = self.mouse_click
+
+        play = pygame.image.load("sprites/btn_playmore.png")
+        stop = pygame.image.load("sprites/btn_stopplay.png")
+        play_selected = pygame.image.load("sprites/btn_playmore_s.png")
+        stop_selected = pygame.image.load("sprites/btn_stopplay_s.png")
+
+        while self.btn_option:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                    self.btn_option = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RIGHT:
+                        self.btn_state = "stop_selected"
+                    elif event.key == pygame.K_LEFT:
+                        self.btn_state = "play_selected"
+                    elif event.key == 13:
+                        self.btn_option = False
+
+            if self.btn_state == "stop_selected":
+                screen.blit(play, ((X-500)//3, Y//8*5))
+                screen.blit(stop_selected, ((X-300)//3*2+100, Y//8*5))
+            elif self.btn_state == "play_selected":
+                screen.blit(play_selected, ((X-500)//3, Y//8*5))
+                screen.blit(stop, ((X-300)//3*2+100, Y//8*5))
+
+            pygame.display.update()
+        
+        if self.btn_option == False and self.btn_state == "play_selected":
+            self.init()
+        elif self.btn_option == False and self.btn_state == "stop_selected":
+            self.endpage()
+             
 
     def mouse_click(self):
         while True:
@@ -379,17 +416,17 @@ class Game():
                     sys.exit()
                     menu = False
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_DOWN:
-                        state_pag = "menu_scores"
-                    elif event.key == pygame.K_UP:
-                        state_pag = "menu_init"
-                    elif event.key == 13:
+                    # if event.key == pygame.K_DOWN:
+                    #     state_pag = "menu_scores"
+                    # elif event.key == pygame.K_UP:
+                    #     state_pag = "menu_init"
+                    if event.key == 13:
                         menu = False
 
             if state_pag == "menu_init":
                 screen.blit(init_menu, (0, 0))
-            elif state_pag == "menu_scores":
-                screen.blit(scores_menu, (0, 0))
+            # elif state_pag == "menu_scores":
+            #     screen.blit(scores_menu, (0, 0))
 
             pygame.display.update()
         
@@ -401,8 +438,11 @@ class Game():
     def endpage(self):
         " a game state function "
         screen.blit(final_score, (0, 0))
-        
 
+        if self.highscore == 0:
+            if game.score < 0:
+                self.highscore = game.score
+        
         if game.score > self.highscore:
             self.highscore = game.score
             font = pygame.font.SysFont("Segoe Print", 140)
@@ -426,10 +466,22 @@ class Game():
             screen.blit(txt_surf2, txt_rect2)
 
         # stop = button("Exit", BLACK, ((X-100)//2, Y//8*5))
-        stop = screen.blit(pygame.image.load("sprites/btn_exit.png"), (50, Y//8*5 + 100))
+
+        stop = pygame.image.load("sprites/btn_exit.png")
+        screen.blit(stop, (50, Y//8*5 + 100))
+        # stop = screen.blit(pygame.image.load("sprites/btn_exit.png"), (50, Y//8*5 + 100))
         
         self.buttons = [(stop, self.end)]
         pygame.display.flip()
+
+        self.btn_exit_select = True
+        while self.btn_exit_select:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT or event.type == pygame.KEYDOWN:
+                    pygame.quit()
+                    sys.exit()
+                    self.btn_exit_select = False
+
 
         self.state = self.mouse_click
 
