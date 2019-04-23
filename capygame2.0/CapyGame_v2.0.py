@@ -64,24 +64,24 @@ class Player():
         self.right = False
         self.walkCount = 0
         self.direction = 1
-        self.capLeft = [pygame.transform.scale(pygame.image.load('sprites/capivara1left.png').convert_alpha(), (74, 62)),
-                        pygame.transform.scale(pygame.image.load('sprites/capivara2left.png').convert_alpha(), (74, 62))]
-        self.capRight = [pygame.transform.scale(pygame.image.load('sprites/capivara1right.png').convert_alpha(), (74, 62)),
-                         pygame.transform.scale(pygame.image.load('sprites/capivara2right.png').convert_alpha(), (74, 62))]
-        self.surf = pygame.transform.scale(pygame.image.load('sprites/capivara1left.png').convert_alpha(), (74, 62))
+        self.capLeft = [pygame.transform.scale(pygame.image.load('sprites/capivara1left.png').convert_alpha(), (51, 42)),
+                        pygame.transform.scale(pygame.image.load('sprites/capivara2left.png').convert_alpha(), (51, 42))]
+        self.capRight = [pygame.transform.scale(pygame.image.load('sprites/capivara1right.png').convert_alpha(), (51, 42)),
+                         pygame.transform.scale(pygame.image.load('sprites/capivara2right.png').convert_alpha(), (51, 42))]
+        self.surf = pygame.transform.scale(pygame.image.load('sprites/capivara1left.png').convert_alpha(), (51, 42))
         self.rect = self.surf.get_rect(midbottom=(X//2, Y - 100))
-        self.rect.height -= 3
+        self.rect.height -= 1
         self.y_speed = 0
 
     def event(self):
         if self.jump:
-            self.y_speed = -18
+            self.y_speed = -25
             self.jump = False
 
         if self.left and self.rect.left > 0:
-            self.rect.centerx -= 15
+            self.rect.centerx -= 12
         if self.right and self.rect.right < X:
-            self.rect.centerx += 15
+            self.rect.centerx += 12
 
         self.rect.bottom += self.y_speed
 
@@ -133,6 +133,7 @@ class Enemy():
         self.surf = pygame.transform.scale(pygame.image.load('sprites/alligator1right.png').convert_alpha(), (86, 40))
         self.rect = self.surf.get_rect(midtop=(X//2, 0))
         self.rect.height -= 13
+        self.rect.width -= 22
         self.x_speed = random.randint(3, 7)
         self.y_speed = 0
 
@@ -163,8 +164,7 @@ class Enemy():
             return False
 
     def hit(self):
-        if (game.player.rect.colliderect(self.rect) and
-            game.player.rect.midbottom != (X//2, Y - 99)):
+        if (game.player.rect.colliderect(self.rect) and game.player.rect.midbottom != (X//2, Y - 99)):
             game.lives -= 1
             game.score -= 15
             game.player.rect.midbottom = (X//2, Y - 99)
@@ -190,28 +190,54 @@ class Enemy():
 class Coin():
     def __init__(self):
         # self.positions = [(580, Y - 100), (250, Y - 100), (420, Y - 100), (830, Y - 100), (800, Y - 100)]
-        self.positions = [(580, 230), (250, 310), (420, 150), (830, 230), (800, 310)]
+        self.positions1 = [(580, 230), (250, 310), (420, 150), (830, 230), (800, 310), (1010, 70)]
+        self.positions2 = [(X - 15, 210), (15, 210), (530, 210), (45, 70), (X - 45, 70)]
+        self.positions3 = [(15, 150), (X - 15, 150), (45, 270), (X - 45, 270), (505, 270), (15, Y - 210), (X - 45, Y - 210)]
         self.surf = pygame.transform.scale(pygame.image.load('sprites/orange.png').convert_alpha(), (25, 25))
 
-        self.rect = self.surf.get_rect(midbottom=random.choice(self.positions))
+        self.rect1 = self.surf.get_rect(midbottom=random.choice(self.positions1))
+        self.rect2 = self.surf.get_rect(midbottom=random.choice(self.positions2))
+        self.rect3 = self.surf.get_rect(midbottom=random.choice(self.positions3))
         self.count = 0
 
     def event(self):
-        if game.player.rect.colliderect(self.rect):
-            self.rect.midbottom = random.choice(self.positions)
-            game.coin_count += 1
-            game.score += 5
-            coinSound.play()
-        elif game.enemy.rect.colliderect(self.rect):
-            self.rect.midbottom = random.choice(self.positions)
+        if (game.level == 0):
+            if game.player.rect.colliderect(self.rect1):
+                self.rect1.midbottom = random.choice(self.positions1)
+                game.coin_count += 1
+                game.score += 5
+                coinSound.play()
+            elif game.enemy.rect.colliderect(self.rect1):
+                self.rect1.midbottom = random.choice(self.positions1)
+        elif (game.level == 1):
+            if game.player.rect.colliderect(self.rect2):
+                self.rect2.midbottom = random.choice(self.positions2)
+                game.coin_count += 1
+                game.score += 5
+                coinSound.play()
+            elif game.enemy.rect.colliderect(self.rect2):
+                self.rect2.midbottom = random.choice(self.positions2)
+        elif (game.level == 2):
+            if game.player.rect.colliderect(self.rect3):
+                self.rect3.midbottom = random.choice(self.positions3)
+                game.coin_count += 1
+                game.score += 5
+                coinSound.play()
+            elif game.enemy.rect.colliderect(self.rect3):
+                self.rect3.midbottom = random.choice(self.positions3)
 
     def draw(self):
-        screen.blit(self.surf, self.rect)
+        if (game.level == 0):
+            screen.blit(self.surf, self.rect1)
+        elif (game.level == 1):
+            screen.blit(self.surf, self.rect2)
+        elif (game.level == 2):
+            screen.blit(self.surf, self.rect3)
 
 
 class Game():
     def __init__(self):
-        self.levels = [self.level_1, self.level_2, self.level_3]
+        self.levels = [self.level_1, self.level_2, self.level_3, self.play_again]
         self.heart_surf = pygame.transform.scale(pygame.image.load('sprites/heart.png').convert_alpha(), (23, 20))
         self.coin_surf = pygame.transform.scale(pygame.image.load('sprites/pineapple.png').convert_alpha(), (25, 40))
         self.acc = 3
@@ -234,7 +260,7 @@ class Game():
     A game state function.
     Called at the start of a new level.
 """
-        self.lives = 2
+        self.lives = 3
         self.coin_count = 0
         self.score = 0
         self.sprites = [self]
@@ -257,17 +283,63 @@ class Game():
         self.sprites.append(Platform(240, 30, 480, 260, RED, 8))
         self.sprites.append(Platform(300, 30, 300, 180, RED, 10))
         self.sprites.append(Platform(300, 30, 500, 100, RED, 10))
-        self.sprites.append(Platform(90, 30, 830, 260, RED, 3))
-        self.sprites.append(Platform(90, 30, 800, 340, RED, 3))
+        self.sprites.append(Platform(180, 30, 860, 260, RED, 6))
+        self.sprites.append(Platform(210, 30, 800, 340, RED, 7))
+
+        self.sprites.append(Platform(90, 30, 1010, 100, RED, 3))
+        self.sprites.append(Platform(90, 30, 1050, 180, RED, 3))
         
 
     def level_2(self):
         print("LEVEL 2")
-        self.level_1()  # level 1 used as dummy
+        self.player = Player()
+        self.sprites.append(self.player)
+        self.enemy = Enemy()
+        self.sprites.append(self.enemy)
+        self.coin = Coin()
+        self.sprites.append(self.coin)
+
+        self.sprites.append(Platform(X, 100, X // 2, Y, GREEN, 0))
+
+        # para adicionar - prim. atributo = 30*ultimo atributo
+        self.sprites.append(Platform(120, 30, 60, Y - 180, RED, 4))
+        self.sprites.append(Platform(150, 30, 75, 240, RED, 5))
+        #self.sprites.append(Platform(60, 30, 0, 260, RED, 2))
+        self.sprites.append(Platform(120, 30, 60, 100, RED, 4))
+
+        self.sprites.append(Platform(30, 30, 330, 340, RED, 1))
+        self.sprites.append(Platform(30, 30, 330, 180, RED, 1))
+
+        self.sprites.append(Platform(30, 30, 530, 240, RED, 1))
+
+        self.sprites.append(Platform(30, 30, 840, 140, RED, 1))
+        self.sprites.append(Platform(30, 30, 800, 350, RED, 1))
+
+        self.sprites.append(Platform(120, 30, X - 60, Y - 180, RED, 4))
+        self.sprites.append(Platform(150, 30, X - 75, 240, RED, 5))
+        # self.sprites.append(Platform(60, 30, 0, 260, RED, 2))
+        self.sprites.append(Platform(90, 30, X - 45, 100, RED, 3))
 
     def level_3(self):
         print("LEVEL 3")
-        self.level_1()  # level 1 used as dummy
+        self.player = Player()
+        self.sprites.append(self.player)
+        self.enemy = Enemy()
+        self.sprites.append(self.enemy)
+        self.coin = Coin()
+        self.sprites.append(self.coin)
+
+        self.sprites.append(Platform(X, 100, X // 2, Y, GREEN, 0))
+
+        # para adicionar - prim. atributo = 30*ultimo atributo
+        self.sprites.append(Platform(900, 30, 450, Y - 180, RED, 30))
+        self.sprites.append(Platform(60, 30, 30, 300, RED, 2))
+        self.sprites.append(Platform(1020, 30, 510, 180, RED, 34))
+
+        self.sprites.append(Platform(150, 30, X - 75, Y - 180, RED, 5))
+        self.sprites.append(Platform(990, 30, X - 495, 300, RED, 33))
+        self.sprites.append(Platform(30, 30, X - 15, 180, RED, 1))
+
 
     def event(self):
         " a game state function "
@@ -322,9 +394,11 @@ class Game():
             s.draw()
         pygame.display.flip()
 
-        if self.lives == 0:
+        if self.lives == 0 or self.level == 3:
             self.state = self.play_again
-        if self.coin_count == 10:
+        if self.coin_count == 5:
+            Platform.rects.clear()
+            self.sprites.clear()
             self.level += 1
             self.state = self.init
 
